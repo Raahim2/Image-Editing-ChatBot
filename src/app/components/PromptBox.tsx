@@ -1,6 +1,5 @@
+// app/components/PromptBox.tsx
 "use client";
-import { useState } from "react";
-
 export default function PromptBox() {
     const [imageSrc, setImageSrc] = useState("");
 
