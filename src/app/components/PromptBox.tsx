@@ -1,4 +1,3 @@
-// app/components/PromptBox.tsx
 export default function PromptBox() {
     return (
         <div className="flex items-center justify-center space-x-4 p-4">
