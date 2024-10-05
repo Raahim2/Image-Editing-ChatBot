@@ -1,13 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface PromptBoxProps {
-  onSubmit: (image: string, prompt: string) => void;
+  onSubmit: (image: string | null, prompt: string) => void;
 }
 
 export default function PromptBox({ onSubmit }: PromptBoxProps) {
   const [imageSrc, setImageSrc] = useState("");
   const [promptText, setPromptText] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -25,19 +26,40 @@ export default function PromptBox({ onSubmit }: PromptBoxProps) {
   };
 
   const handleGenerate = () => {
-    if (imageSrc && promptText) {
+    if (promptText.trim()) {
       onSubmit(imageSrc, promptText);
       setImageSrc("");
       setPromptText("");
+    } else {
+      alert("Please enter a prompt.");
     }
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleGenerate();
+    }
+  };
+  
+
+  const handleInput = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'; 
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  };
+
+  useEffect(() => {
+    handleInput();
+  }, [promptText]);
+
   return (
-    <div className="flex flex-col items-start justify-center space-y-6 p-4">
+    <div className="flex flex-col items-start justify-center space-y-6 px-4 pb-4 pt-0">
       {imageSrc && (
         <div className="relative w-32 h-32">
           <button
-            className="absolute top-1 right-0 bg-white p-1 pb-0"
+            className="absolute top-4 right-0 bg-white bg-opacity-50 px-0.5 rounded-tr-lg"
             onClick={handleRemoveImage}
           >
             &times;
@@ -50,14 +72,24 @@ export default function PromptBox({ onSubmit }: PromptBoxProps) {
         </div>
       )}
 
-      <div className="flex space-x-4 w-full">
+      <div className="flex space-x-4 w-full items-center">
         <div className="relative flex-1">
-          <input
-            type="text"
+          <textarea
+            ref={textareaRef}
             placeholder="Give your prompt"
             value={promptText}
-            onChange={(e) => setPromptText(e.target.value)}
-            className="border rounded-lg p-2 pl-10 pr-10 w-full text-blue-500"
+            onChange={(e) => {
+              setPromptText(e.target.value);
+              handleInput();
+            }}
+            onKeyDown={handleKeyDown}
+            className="border rounded-lg p-2 pl-10 pr-10 w-full text-black"
+            style={{
+              minHeight: '1rem', 
+              maxHeight: '6rem', 
+              overflowY: 'auto',
+              resize: 'none',
+            }}
           />
           <label htmlFor="image-upload" className="absolute left-2 top-2 cursor-pointer">
             <span className="material-icons" style={{ fontSize: '24px', color: '#0094f7' }}>attachment</span>
@@ -70,7 +102,11 @@ export default function PromptBox({ onSubmit }: PromptBoxProps) {
             />
           </label>
         </div>
-        <button className="bg-blue-500 text-white rounded-lg px-4 py-2" onClick={handleGenerate}>
+        <button 
+          className="bg-blue-500 text-white rounded-lg px-4 py-2" 
+          style={{ height: '3rem' }}
+          onClick={handleGenerate}
+        >
           Generate
         </button>
       </div>
